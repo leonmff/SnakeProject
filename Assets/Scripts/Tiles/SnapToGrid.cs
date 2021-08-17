@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class SnapToGrid : MonoBehaviour
 {
     SOGridConfig _soGridConfig;
 
-    private void OnDrawGizmos()
+    private void Update()
     {
         if (!Application.isPlaying && transform.hasChanged)
         {

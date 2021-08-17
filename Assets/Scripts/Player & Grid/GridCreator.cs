@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Cinemachine;
 
 public class GridCreator : MonoBehaviour
 {
@@ -20,12 +21,24 @@ public class GridCreator : MonoBehaviour
     [SerializeField, InspectorReadOnly, Space(15)]
     List<GameObject> _listGridTiles;
 
+    CinemachineTargetGroup _tgCam;
+    CinemachineVirtualCamera _vCam;
+
+    Transform _targetGroupFirst;
+    Transform _targetGroupLast;
+
     private void OnValidate() => FetchGridConfigAndUpdateVars();
 
     void FetchGridConfigAndUpdateVars()
     {
         if (!_soGridConfig)
             _soGridConfig = Resources.Load<SOGridConfig>("GridConfig");
+
+        if (!_tgCam)
+            _tgCam = Camera.main.transform.parent.GetComponentInChildren<CinemachineTargetGroup>();
+
+        if (!_vCam)
+            _vCam = Camera.main.transform.parent.GetComponentInChildren<CinemachineVirtualCamera>();
 
         _gridSize = _soGridConfig.GridSize;
         _gridOffset = _soGridConfig.GridOffset;
@@ -45,7 +58,9 @@ public class GridCreator : MonoBehaviour
                 GameObject t_gridTile = InstanceGridTile(new Vector2(colunm * _soGridConfig.GridOffset, line * _soGridConfig.GridOffset));
                 _listGridTiles.Add(t_gridTile);
             }
-        }       
+        }
+
+        SetCamera();
     }
 
     public void RecreateGrid()
@@ -71,5 +86,20 @@ public class GridCreator : MonoBehaviour
         GameObject t_gridTile = (GameObject)PrefabUtility.InstantiatePrefab(_prefabGridTile, transform); 
         t_gridTile.transform.position = pTilePosition;
         return t_gridTile;
+    }
+
+    void SetCamera()
+    {
+        _tgCam.RemoveMember(_targetGroupFirst);
+        _tgCam.RemoveMember(_targetGroupLast);
+
+        _targetGroupFirst = _listGridTiles[0].transform;
+        _targetGroupLast = _listGridTiles[_listGridTiles.Count - 1].transform;
+
+        _tgCam.AddMember(_targetGroupFirst, 1f, 0f);
+        _tgCam.AddMember(_targetGroupLast, 1f, 0f);
+
+        float t_biggestSize = _soGridConfig.GridSize.x > _soGridConfig.GridSize.y ? _soGridConfig.GridSize.x : _soGridConfig.GridSize.y;
+        _vCam.m_Lens.OrthographicSize = Mathf.Lerp(_soGridConfig.OrthographicSize.x, _soGridConfig.OrthographicSize.y, t_biggestSize / _soGridConfig.MaxSize);
     }
 }
