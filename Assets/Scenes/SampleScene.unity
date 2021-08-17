@@ -342,6 +342,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3067795230782302133, guid: 7d305b2b97a4c5e4aa49dced368de05d, type: 3}
+      propertyPath: m_Size.x
+      value: 0.13913043
+      objectReference: {fileID: 0}
+    - target: {fileID: 3067795230782302133, guid: 7d305b2b97a4c5e4aa49dced368de05d, type: 3}
+      propertyPath: m_Size.y
+      value: 0.13913043
+      objectReference: {fileID: 0}
+    - target: {fileID: 3067795230782302133, guid: 7d305b2b97a4c5e4aa49dced368de05d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3067795230782302133, guid: 7d305b2b97a4c5e4aa49dced368de05d, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7d305b2b97a4c5e4aa49dced368de05d, type: 3}
 --- !u!1001 &120576473
@@ -2348,7 +2364,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.06755074, g: 0.42057517, b: 0.4339623, a: 1}
+  m_BackGroundColor: {r: 0.04774831, g: 0.19519998, b: 0.2735849, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -4856,6 +4872,10 @@ PrefabInstance:
     - target: {fileID: 3067795230782302132, guid: 7d305b2b97a4c5e4aa49dced368de05d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3067795230782302133, guid: 7d305b2b97a4c5e4aa49dced368de05d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7d305b2b97a4c5e4aa49dced368de05d, type: 3}
@@ -7963,7 +7983,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 21300000, guid: c215ccf64ee861049bd16f424cf2f9f9, type: 3}
   m_Color: {r: 0.14217545, g: 0.5943396, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -8025,9 +8045,9 @@ BoxCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
-    border: {x: 0.049999997, y: 0.049999997, z: 0.049999997, w: 0.049999997}
+    border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.16, y: 0.16}
+    oldSize: {x: 0.13913043, y: 0.13913043}
     newSize: {x: 0.16, y: 0.16}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
