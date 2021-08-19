@@ -9,12 +9,19 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField, Header("Player's Settings")]
     float _movementInterval = 0f;
+    public float MovementInterval { get => _movementInterval; }
+
+    [SerializeField, Range(0.001f, 0.999f)]
+    float _intervalMultiplierPerFood = 0f;
     [SerializeField]
     Direction _currentDirection = Direction.Up;
-    [SerializeField]
+    
+    [SerializeField, Space(15)]
     bool _loopThroughGrid = false;
     [SerializeField]
     bool _ignoreMovingBack = false;
+    [SerializeField]
+    bool _moveByBlock = true;
 
     SOTileColorsConfig _soTileColorsConfig;
     SOGridConfig _soGridConfig;
@@ -54,24 +61,26 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         GetDirection();
-    
-        if (IsPlayerMovingBack())
-        {
-            if (_ignoreMovingBack)
-                _currentDirection = _previousDirection;
-            else
-            {
-                _isAlive = false;
-                _playerDeath.KillPlayer();
-            }
-        }
     }
+
+    public void IncreaseSpeed() => _movementInterval *= _intervalMultiplierPerFood;
 
     IEnumerator MovePlayer()
     {
         while (_isAlive)
         {
             Vector3 t_newPosition = Vector3.zero;
+
+            if (IsPlayerMovingBack())
+            {
+                if (_ignoreMovingBack)
+                    _currentDirection = _previousDirection;
+                else
+                {
+                    _isAlive = false;
+                    _playerDeath.KillPlayer();
+                }
+            }
 
             switch (_currentDirection)
             {
@@ -89,9 +98,47 @@ public class PlayerMovement : MonoBehaviour
                     break;
             }
 
-            yield return StartCoroutine(ValidadeCurrentPosition(t_newPosition));
-            yield return new WaitForSeconds(_movementInterval);
+            Vector2 t_previousPosition = transform.position;
+            bool t_outOfGrid = false;
+            if (!ValidadeCurrentPosition(ref t_newPosition, ref t_outOfGrid))
+            {
+                _isAlive = false;
+                _playerDeath.KillPlayer();
+                yield break;
+            }
+
+            //Debug.Log($"<size=22><color=mangeta>_moveByBlock {_moveByBlock} | t_outOfGrid {t_outOfGrid}</color></size>");
+            if (_moveByBlock || t_outOfGrid)
+            {
+                //Debug.Log($"<size=22><color=lime>By Block</color></size>");
+
+                transform.position = t_newPosition;
+                _playerTailControl.MoveTail(t_previousPosition);
+                yield return new WaitForSeconds(_movementInterval);
+            }
+            else
+            {
+                //Debug.Log($"<size=22><color=aqua>Smooth</color></size>");
+
+                _playerTailControl.MoveTail(t_previousPosition, true);
+                yield return StartCoroutine(MoveSmooth(t_newPosition));
+            }
         }
+    }
+
+    IEnumerator MoveSmooth(Vector2 pFinalPosition)
+    {
+        Vector2 t_initialPosition = transform.position;
+        float t_elapsedTime = 0f;
+
+        while (t_elapsedTime < _movementInterval)
+        {         
+            transform.position = Vector2.Lerp(t_initialPosition, pFinalPosition, t_elapsedTime / _movementInterval);
+            t_elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = pFinalPosition;
     }
 
     bool IsPlayerMovingBack()
@@ -105,47 +152,37 @@ public class PlayerMovement : MonoBehaviour
         return t_movedBackHorizontal || t_movedBackVertical;
     }
 
-    IEnumerator ValidadeCurrentPosition(Vector3 pNewPosition)
+    bool ValidadeCurrentPosition(ref Vector3 refNewPositionOffset, ref bool refOutOfGrid)
     {
-        Vector2 t_previousPosition = transform.position;
-        pNewPosition = transform.position + pNewPosition;
+        bool t_isPlayerWithinGrid = IsPlayerWithinGrid(transform.position + refNewPositionOffset);
+
+        refOutOfGrid = !t_isPlayerWithinGrid;
+        refNewPositionOffset = transform.position + refNewPositionOffset;
 
         if (!_loopThroughGrid)
-        {
-            if (IsPlayerWithinGrid(pNewPosition))
-            {
-                transform.position = pNewPosition;
-                _playerTailControl.MoveTail(t_previousPosition);
-            }
-            else
-            {
-                _isAlive = false;
-                _playerDeath.KillPlayer();
-            }
-        }
+            return t_isPlayerWithinGrid;
         else
         {
-            // Loop through grid
+            float t_margin = 0.01f;
 
-            if (pNewPosition.x > ((_soGridConfig.GridSize.x - 1f) * _soGridConfig.GridOffset))
-                pNewPosition.x = 0f;
-            else if (pNewPosition.x < 0f)
-                pNewPosition.x = (_soGridConfig.GridSize.x - 1f) * _soGridConfig.GridOffset;
+            if (refNewPositionOffset.x > ((_soGridConfig.GridSize.x - 1) * _soGridConfig.GridOffset) + t_margin)
+                refNewPositionOffset.x = 0f;
+            else if (refNewPositionOffset.x < -t_margin)
+                refNewPositionOffset.x = (_soGridConfig.GridSize.x - 1) * _soGridConfig.GridOffset;
 
-            if (pNewPosition.y > ((_soGridConfig.GridSize.y - 1f) * _soGridConfig.GridOffset))
-                pNewPosition.y = 0f;
-            else if (pNewPosition.y < 0f)
-                pNewPosition.y = (_soGridConfig.GridSize.y - 1f) * _soGridConfig.GridOffset;
+            if (refNewPositionOffset.y > ((_soGridConfig.GridSize.y - 1) * _soGridConfig.GridOffset) + t_margin)
+                refNewPositionOffset.y = 0f;
+            else if (refNewPositionOffset.y < -t_margin)
+                refNewPositionOffset.y = (_soGridConfig.GridSize.y - 1) * _soGridConfig.GridOffset;
 
-            transform.position = pNewPosition;
-            _playerTailControl.MoveTail(t_previousPosition);
+            return true;
         }
-
-        yield break;
     }
 
     bool IsPlayerWithinGrid(Vector3 pNewPosition)
     {
+        //Debug.Log($"<size=22><color=white>New Position: {pNewPosition}</color></size>");
+
         bool t_withinBoundrieX = (pNewPosition.x >= 0f && pNewPosition.x <= (_soGridConfig.GridSize.x - 1f) * _soGridConfig.GridOffset);
         bool t_withinBoundrieY = (pNewPosition.y >= 0f && pNewPosition.y <= (_soGridConfig.GridSize.y - 1f) * _soGridConfig.GridOffset);
 

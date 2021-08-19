@@ -31,8 +31,13 @@ public class PlayerTailController : MonoBehaviour
     {
         if (collision.CompareTag("TailFood"))
         {
+            IInteractable t_interactable = collision.GetComponent<IInteractable>();
+            if (t_interactable != null)
+                t_interactable.Interact();
+
             collision.gameObject.SetActive(false);
             AddTail();
+            _playerMovement.IncreaseSpeed();
         }
     }
 
@@ -47,9 +52,9 @@ public class PlayerTailController : MonoBehaviour
         t_newTile.transform.position = _tailEndPreviousPosition;
     }
 
-    public void MoveTail(Vector2 pPlayersPreviousPosition) => StartCoroutine(MoveTails(pPlayersPreviousPosition));
+    public void MoveTail(Vector2 pPlayersPreviousPosition, bool pSmooth = false) => StartCoroutine(MoveTails(pPlayersPreviousPosition, pSmooth));
 
-    IEnumerator MoveTails(Vector2 pPlayersPreviousPosition)
+    IEnumerator MoveTails(Vector2 pPlayersPreviousPosition, bool pSmooth)
     {
         UpdateTailEndPosition(pPlayersPreviousPosition);
 
@@ -61,10 +66,32 @@ public class PlayerTailController : MonoBehaviour
             t_currentTail = _listTail[index];
             Vector3 t_newPosition = t_previousMovedTail;
             t_previousMovedTail = t_currentTail.position;
-            t_currentTail.position = t_newPosition;
 
+            if (pSmooth)
+                StartCoroutine(MoveLerp(t_currentTail, t_newPosition));
+            else
+            {
+                t_currentTail.position = t_newPosition;
+                yield return null;
+            }
+        }
+
+        yield break;
+    }
+
+    IEnumerator MoveLerp(Transform pTail, Vector2 pFinalPosition)
+    {
+        Vector2 t_initialPosition = pTail.position;
+        float t_elapsedTime = 0f + (_playerMovement.MovementInterval * 0.04f);
+        
+        while (t_elapsedTime < _playerMovement.MovementInterval)
+        {
+            pTail.position = Vector2.Lerp(t_initialPosition, pFinalPosition, t_elapsedTime / _playerMovement.MovementInterval);
+            t_elapsedTime += Time.deltaTime;
             yield return null;
         }
+
+        transform.position = pFinalPosition;
     }
 
     void UpdateTailEndPosition(Vector2 pPlayersPreviousPosition)

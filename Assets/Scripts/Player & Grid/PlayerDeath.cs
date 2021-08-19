@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class PlayerDeath : MonoBehaviour
 {
@@ -35,7 +36,10 @@ public class PlayerDeath : MonoBehaviour
 
         StartCoroutine(PlayerWaveColorChange(_soTileColorConfig.Black, _delayBetweenTiles));
         yield return new WaitForSeconds(_durationFadeOut);
-        StartCoroutine(PlayerWaveColorChange(Color.clear, _delayBetweenTiles * 1.5f));
+        yield return StartCoroutine(PlayerWaveColorChange(Color.clear, _delayBetweenTiles * 1.5f));
+
+        yield return new WaitForSeconds(0.2f);
+        SceneManager.LoadScene(0);
     }
 
     IEnumerator PlayerWaveSizeIncrease(float pDelay)
